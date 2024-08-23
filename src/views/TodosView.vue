@@ -22,8 +22,8 @@ const editFormError: Reactive<TodoErrorModel> = reactive(new TodoErrorModel())
 const applyType: Ref<string> = ref('all') // all, complete, uncomplete
 const todoList: Ref<TodoModel[]> = ref([])
 const todoFilterList: Ref<TodoModel[]> = ref([])
-const completeNum: ComputedRef<number> = computed(() => {
-  return todoFilterList.value.filter((item) => item.status === true).length
+const uncompleteNum: ComputedRef<number> = computed(() => {
+  return todoFilterList.value.filter((item) => item.status === false).length
 })
 
 onMounted(async () => {
@@ -354,7 +354,7 @@ const removeTodoItem = async (item: TodoModel) => {
       <h1><a href="#">ONLINE TODO LIST</a></h1>
       <ul>
         <li class="todo_sm">
-          <a href="#"><span>{{ curUser }}的代辦</span></a>
+          <a href="javascript:void(0)"><span>{{ curUser }}的代辦</span></a>
         </li>
         <li><a href="javascript:void(0)" @click.prevent="singOutClickHandler">登出</a></li>
       </ul>
@@ -386,7 +386,7 @@ const removeTodoItem = async (item: TodoModel) => {
               </li>
             </ul>
             <div class="todoList_statistics">
-              <p>{{ completeNum }} 個已完成項目</p>
+              <p>{{ uncompleteNum }} 個待完成項目</p>
             </div>
           </div>
         </div>

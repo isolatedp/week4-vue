@@ -17,5 +17,8 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 4000,
     hmr: true
-  }
+  },
+  // build: { // 提供 gh-pages 的輸出
+  //   outDir: 'dist-gh-pages'
+  // }
 })
