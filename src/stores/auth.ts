@@ -7,7 +7,7 @@ import Swal from 'sweetalert2'
 import { useCookies } from 'vue3-cookies'
 import { BASE_URL } from '../global-variables'
 import { SignInModel } from '../view-models/auth-models'
-import type { userInfoInterface } from '../interfaces/auth-interfaces'
+import type { UserInfoInterface } from '../interfaces/auth-interfaces'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -87,7 +87,7 @@ export const useAuthStore = defineStore(
     const signOut = async () => {
       const apiStatus = ref(true)
 
-      const userInfo = cookies.get('userInfo') as Object as userInfoInterface
+      const userInfo = cookies.get('userInfo') as Object as UserInfoInterface
       if (!userInfo) {
         status.value = false
         cookies.remove('userInfo')
@@ -97,23 +97,119 @@ export const useAuthStore = defineStore(
       let apiResp: any
       let apiErrorMsg: any
       const url = `${BASE_URL}/users/sign_out`
-      const headers = { Authorization: `${userInfo!.token}` }
+      const headers = { Authorization: `${userInfo.token}` }
       try {
-        const resp = await axios.delete(url)
+        const resp = await axios.post(url, {}, { headers })
         apiResp = resp.data
       } catch (error: any) {
         if (error instanceof AxiosError) {
           const resp = error.response
           apiResp = resp!.data
+          apiErrorMsg = apiResp?.message ? 
+          `登出失敗，${apiResp.message}，將強制清空登入資訊並跳轉回登入頁面。` :
+          '登出失敗，將強制清空登入資訊並跳轉回登入頁面。'
         } else {
-          apiErrorMsg = '登出失敗，請稍後再試。'
+          apiErrorMsg = '登出失敗，將強制清空登入資訊並跳轉回登入頁面。'
         }
 
-        status.value = false
+        await Swal.fire({
+          icon: 'error',
+          title: '登出失敗',
+          text: apiErrorMsg,
+        })
       }
+
+      status.value = false
+      cookies.remove('userInfo')
+      return apiStatus.value
     }
 
-    return { status, getStatus, signIn, signOut }
+    const checkout = async (signPageFlag: boolean = false) => {
+      // signPageFlag: 是否在登入或註冊頁面
+      const apiStatus = ref(true)
+      const userInfo = cookies.get('userInfo') as Object as UserInfoInterface
+      if (!userInfo && signPageFlag) {
+        status.value = false
+        cookies.remove('userInfo')
+        return apiStatus.value
+      } else if (!userInfo && !signPageFlag) {
+        status.value = false
+        cookies.remove('userInfo')
+        await Swal.fire({
+          icon: 'error',
+          title: '登入狀態驗證錯誤',
+          text: '登入狀態驗證錯誤，無法取得已登入資訊，將強制清空登入資訊並跳轉回登入頁面。'
+        })
+        apiStatus.value = false
+        return apiStatus.value
+      }
+
+      // 檢查登入資訊是否正確
+      const signInExp = new Date(userInfo.exp * 1000)
+      if (signInExp < new Date()) {
+        status.value = false
+        cookies.remove('userInfo')
+
+        await Swal.fire({
+          icon: 'error',
+          title: '登入狀態驗證錯誤',
+          text: '登入狀態驗證錯誤，登入資訊已過期，將強制清空登入資訊並跳轉回登入頁面。'
+        })
+
+        apiStatus.value = false
+        return apiStatus.value
+      }
+
+      // 後端驗證登入狀態
+      const url = `${BASE_URL}/users/checkout`
+      let apiResp: any
+      let apiErrorMsg: any
+      const headers = { Authorization: `${userInfo.token}` }
+      try {
+        const resp = await axios.get(url, { headers })
+        apiResp = resp.data
+      } catch (error: any) {
+        if (error instanceof AxiosError) {
+          const resp = error.response
+          apiResp = resp!.data
+          apiErrorMsg = apiResp?.message ? 
+          `登入狀態驗證錯誤，${apiResp.message}，將強制清空登入資訊並跳轉回登入頁面。` :
+          '登入狀態驗證錯誤，將強制清空登入資訊並跳轉回登入頁面。'
+        } else {
+          apiErrorMsg = '登入狀態驗證錯誤，將強制清空登入資訊並跳轉回登入頁面。'
+        }
+
+        await Swal.fire({
+          icon: 'error',
+          title: '登入狀態驗證錯誤',
+          text: apiErrorMsg,
+        })
+
+        status.value = false
+        cookies.remove('userInfo')
+        apiStatus.value = false
+        return apiStatus.value
+      }
+
+      if (!apiResp.status) {
+        status.value = false
+        cookies.remove('userInfo')
+
+        await Swal.fire({
+          icon: 'error',
+          title: '登入狀態驗證錯誤',
+          text: '登入狀態驗證錯誤，將強制清空登入資訊並跳轉回登入頁面。'
+        })
+
+        apiStatus.value = false
+        return apiStatus.value
+      }
+
+      status.value = true
+      return apiStatus.value
+    }
+
+    return { status, getStatus, signIn, signOut, checkout }
   },
   { persist: true }
 )

@@ -1,5 +1,7 @@
 import './assets/main.css'
 
+import '@fortawesome/fontawesome-free/css/all.min.css'
+
 // 引入 sweetalert2: https://www.npmjs.com/package/vue-sweetalert2
 import VueSweetalert2 from 'vue-sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'

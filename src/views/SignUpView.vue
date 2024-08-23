@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import type { Ref, Reactive } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import axios from 'axios'
@@ -7,10 +7,28 @@ import { AxiosError } from 'axios'
 import Swal from 'sweetalert2'
 import { BASE_URL } from '../global-variables'
 import { SignUpModel, SignUpErrorModel } from '../view-models/auth-models'
+import { useAuthStore } from '../stores/auth'
 
+
+const authStore = useAuthStore()
 const router = useRouter()
 const editForm: Reactive<SignUpModel> = reactive(new SignUpModel())
 const editFormError: Reactive<SignUpErrorModel> = reactive(new SignUpErrorModel())
+  
+onMounted(async () => {
+  // 檢查是否已登入，已登入則跳轉至 Todo 功能頁
+  const apiResult = await authStore.checkout(true)
+  if (!apiResult) {
+    await Swal.fire({
+      icon: 'info',
+      title: '登入狀態',
+      text: '您已登入，將自動跳轉至 Todo 功能頁',
+    showConfirmButton: false,
+    timer: 1500
+    })
+  }
+})
+
 
 const signUpClickHandler = async () => {
   // 資料驗證
