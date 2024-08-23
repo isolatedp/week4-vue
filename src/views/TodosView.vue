@@ -168,7 +168,10 @@ const addTodoItem = async () => {
 const duplicateTodoItemValidate = async () => {
   const vaildateResult = ref(false)
 
-  const existTodoItem = todoList.value.find((item) => item.content === editForm.content) as TodoModel
+  let tempContent = `${editForm.content}`
+  tempContent = tempContent.replace(/\s+/g, '')
+
+  const existTodoItem = todoList.value.find((item) => item.content === tempContent) as TodoModel
   if (!existTodoItem) return vaildateResult.value
 
 
@@ -279,6 +282,8 @@ const toggleTodoItemStatus = async (item: TodoModel) => {
   }
 
   await getTodoList()
+
+  changeApplyType(applyType.value)
 }
 
 const removeTodoItem = async (item: TodoModel) => {
