@@ -8,6 +8,7 @@ import { useCookies } from 'vue3-cookies'
 import { BASE_URL } from '../global-variables'
 import { SignInModel } from '../view-models/auth-models'
 import type { UserInfoInterface } from '../interfaces/auth-interfaces'
+import { useLoadingStore } from '../stores/loading'
 
 export const useAuthStore = defineStore(
   'auth',
@@ -17,6 +18,8 @@ export const useAuthStore = defineStore(
     const { cookies } = useCookies()
     const getStatus = computed(() => status.value)
 
+    const loadingStore = useLoadingStore()
+
     const signIn = async (signInForm: SignInModel) => {
       // 初始化登入狀態(TODO: 含清除使用者 Cookie)
       status.value = false
@@ -24,12 +27,16 @@ export const useAuthStore = defineStore(
 
       const apiStatus = ref(true)
 
+      loadingStore.show()
+
       let apiResp: any
       let apiErrorMsg: any
       const url = `${BASE_URL}/users/sign_in`
       try {
         const resp = await axios.post(url, signInForm)
         apiResp = resp.data
+
+        loadingStore.hide()
       } catch (error: any) {
         if (error instanceof AxiosError) {
           const resp = error.response
@@ -55,6 +62,8 @@ export const useAuthStore = defineStore(
         } else {
           apiErrorMsg = '登入失敗，請稍後再試。'
         }
+
+        loadingStore.hide()
 
         await Swal.fire({
           icon: 'error',
@@ -94,6 +103,8 @@ export const useAuthStore = defineStore(
         return apiStatus.value
       }
 
+      loadingStore.show()
+
       let apiResp: any
       let apiErrorMsg: any
       const url = `${BASE_URL}/users/sign_out`
@@ -101,6 +112,8 @@ export const useAuthStore = defineStore(
       try {
         const resp = await axios.post(url, {}, { headers })
         apiResp = resp.data
+
+        loadingStore.hide()
       } catch (error: any) {
         if (error instanceof AxiosError) {
           const resp = error.response
@@ -111,6 +124,8 @@ export const useAuthStore = defineStore(
         } else {
           apiErrorMsg = '登出失敗，將強制清空登入資訊並跳轉回登入頁面。'
         }
+
+        loadingStore.hide()
 
         await Swal.fire({
           icon: 'error',
@@ -161,6 +176,8 @@ export const useAuthStore = defineStore(
       }
 
       // 後端驗證登入狀態
+      loadingStore.show()
+
       const url = `${BASE_URL}/users/checkout`
       let apiResp: any
       let apiErrorMsg: any
@@ -168,6 +185,8 @@ export const useAuthStore = defineStore(
       try {
         const resp = await axios.get(url, { headers })
         apiResp = resp.data
+
+        loadingStore.hide()
       } catch (error: any) {
         if (error instanceof AxiosError) {
           const resp = error.response
@@ -178,6 +197,8 @@ export const useAuthStore = defineStore(
         } else {
           apiErrorMsg = '登入狀態驗證錯誤，將強制清空登入資訊並跳轉回登入頁面。'
         }
+
+        loadingStore.hide()
 
         await Swal.fire({
           icon: 'error',

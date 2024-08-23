@@ -9,9 +9,11 @@ import { useAuthStore } from '../stores/auth'
 import type { UserInfoInterface } from '../interfaces/auth-interfaces'
 import { BASE_URL } from '../global-variables'
 import axios, { AxiosError } from 'axios'
+import { useLoadingStore } from '../stores/loading'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const loadingStore = useLoadingStore()
 const { cookies } = useCookies()
 const userInfo = cookies.get('userInfo') as Object as UserInfoInterface
 const curUser = userInfo ? userInfo.nickname : '未知'
@@ -30,8 +32,6 @@ onMounted(async () => {
   if (!apiResult) router.push('/sign-in')
 
   await getTodoList()
-
-  console.log(todoList.value)
 })
 
 const singOutClickHandler = async () => {
@@ -56,6 +56,8 @@ const getTodoList = async () => {
   const authResult = await authStore.checkout()
   if (!authResult) router.push('/sign-in')
 
+  loadingStore.show()
+
   const url = `${BASE_URL}/todos/`
   const headers = { Authorization: userInfo.token }
   let apiResult: any
@@ -63,6 +65,8 @@ const getTodoList = async () => {
   try {
     const resp = await axios.get(url, { headers })
     apiResult = resp.data
+
+    loadingStore.hide()
   } catch (error) {
     if (error instanceof AxiosError) {
       const resp = error.response
@@ -73,6 +77,7 @@ const getTodoList = async () => {
     } else {
       apiErrorMsg = '取得待辦事項失敗，請稍後再試。'
     }
+    loadingStore.hide()
 
     await Swal.fire({
       icon: 'error',
@@ -114,6 +119,8 @@ const addTodoItem = async () => {
   const postData = addTodoItemPreProcess()
 
   // 發送 POST 請求
+  loadingStore.show()
+
   const url = `${BASE_URL}/todos/`
   const headers = { Authorization: userInfo.token }
   let apiResult: any
@@ -121,6 +128,8 @@ const addTodoItem = async () => {
   try {
     const resp = await axios.post(url, postData, { headers })
     apiResult = resp.data
+
+    loadingStore.hide()
   } catch (error) {
     if (error instanceof AxiosError) {
       const resp = error.response
@@ -131,6 +140,7 @@ const addTodoItem = async () => {
     } else {
       apiErrorMsg = '新增待辦事項失敗，請稍後再試。'
     }
+    loadingStore.hide()
 
     await Swal.fire({
       icon: 'error',
@@ -229,15 +239,16 @@ const toggleTodoItemStatus = async (item: TodoModel) => {
   const authResult = await authStore.checkout()
   if (!authResult) router.push('/sign-in')
 
+  loadingStore.show()
   const url = `${BASE_URL}/todos/${item.id}/toggle`
   const headers = { Authorization: userInfo.token }
-
   let apiResult: any
   let apiErrorMsg: any
-
   try {
     const resp = await axios.patch(url, {}, { headers })
     apiResult = resp.data
+
+    loadingStore.hide()
   } catch (error) {
     if (error instanceof AxiosError) {
       const resp = error.response
@@ -248,6 +259,7 @@ const toggleTodoItemStatus = async (item: TodoModel) => {
     } else {
       apiErrorMsg = '切換待辦事項狀態失敗，請稍後再試。'
     }
+    loadingStore.hide()
 
     await Swal.fire({
       icon: 'error',
@@ -286,15 +298,16 @@ const removeTodoItem = async (item: TodoModel) => {
 
   if (!userResult.isConfirmed) return
 
+  loadingStore.show()
   const url = `${BASE_URL}/todos/${item.id}`
   const headers = { Authorization: userInfo.token }
-
   let apiResult: any
   let apiErrorMsg: any
-
   try {
     const resp = await axios.delete(url, { headers })
     apiResult = resp.data
+
+    loadingStore.hide()
   } catch (error) {
     if (error instanceof AxiosError) {
       const resp = error.response
@@ -305,6 +318,7 @@ const removeTodoItem = async (item: TodoModel) => {
     } else {
       apiErrorMsg = '刪除待辦事項失敗，請稍後再試。'
     }
+    loadingStore.hide()
 
     await Swal.fire({
       icon: 'error',
@@ -325,7 +339,6 @@ const removeTodoItem = async (item: TodoModel) => {
 
   await getTodoList()
 }
-
 
 </script>
 
@@ -349,7 +362,7 @@ const removeTodoItem = async (item: TodoModel) => {
             <i class="fa fa-plus"></i>
           </a>
         </div>
-        <div class="todoList_list">
+        <div class="todoList_list" v-if="todoList.length > 0">
           <ul class="todoList_tab">
             <li><a href="javascript:void(0)" :class="{active: applyType === 'all'}" @click="changeApplyType('all')">全部</a></li>
             <li><a href="javascript:void(0)" :class="{active: applyType === 'uncomplete'}" @click="changeApplyType('uncomplete')">待完成</a></li>
@@ -371,6 +384,10 @@ const removeTodoItem = async (item: TodoModel) => {
               <p>{{ completeNum }} 個已完成項目</p>
             </div>
           </div>
+        </div>
+        <div style="text-align: center; padding-top: 4.5rem;" v-else>
+          <p>目前尚無代辦事項</p>
+          <img class="d-m-n" src="../assets/images/img2.png" alt="workImg" />
         </div>
       </div>
     </div>

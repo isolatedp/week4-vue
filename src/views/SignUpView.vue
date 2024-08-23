@@ -8,10 +8,12 @@ import Swal from 'sweetalert2'
 import { BASE_URL } from '../global-variables'
 import { SignUpModel, SignUpErrorModel } from '../view-models/auth-models'
 import { useAuthStore } from '../stores/auth'
+import { useLoadingStore } from '../stores/loading'
 
 
 const authStore = useAuthStore()
 const router = useRouter()
+const loadingStore = useLoadingStore()
 const editForm: Reactive<SignUpModel> = reactive(new SignUpModel())
 const editFormError: Reactive<SignUpErrorModel> = reactive(new SignUpErrorModel())
   
@@ -38,13 +40,14 @@ const signUpClickHandler = async () => {
   // 資料預處理
   const postData = signUpPreProcess()
 
+  loadingStore.show()
   const url = `${BASE_URL}/users/sign_up`
   let apiResult: any
   let apiErrorMsg: any
-
   try {
     const resp = await axios.post(url, postData)
     apiResult = resp.data
+    loadingStore.hide()
   } catch (error) {
     if (error instanceof AxiosError) {
       const resp = error.response
@@ -55,6 +58,7 @@ const signUpClickHandler = async () => {
     } else {
       apiErrorMsg = '註冊失敗，請稍後再試。'
     }
+    loadingStore.hide()
 
     await Swal.fire({
       icon: 'error',
