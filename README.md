@@ -47,3 +47,11 @@ npm run lint
 5. vue3-cookies - cookies 管理
 6. vue-loading-overlay - Loading 元件
 7. vue-sweetalert2 - Modal 提醒元件
+8. gh-pages 部署至 Github Pages 使用
+
+### Online Url
+[https://ck-tn-bp001.linkpc.net/week4-vue/](https://ck-tn-bp001.linkpc.net/week4-vue/)
+Github Page: [https://isolatedp.github.io/week4-vue/#/](https://isolatedp.github.io/week4-vue/#/)
+
+### 特別提醒
+1. 僅練習使用，資料庫將於每日 01:15 清空，請勿存放重要資訊
