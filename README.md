@@ -50,7 +50,7 @@ npm run lint
 8. gh-pages 部署至 Github Pages 使用
 
 ### Online Url
-[https://ck-tn-bp001.linkpc.net/week4-vue/](https://ck-tn-bp001.linkpc.net/week4-vue/)
+[https://ck-tn-bp001.us.kg/week4-vue/](https://ck-tn-bp001.us.kg/week4-vue/)
 Github Page: [https://isolatedp.github.io/week4-vue/#/](https://isolatedp.github.io/week4-vue/#/)
 
 ### 特別提醒
